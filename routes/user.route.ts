@@ -1,6 +1,7 @@
 import express from "express";
 import {
   activeUser,
+  getUserInfo,
   loginUser,
   logoutUser,
   registrationUser,
@@ -18,5 +19,7 @@ UserRouter.post("/login", loginUser);
 UserRouter.get("/logout", isAuthenticated, logoutUser);
 
 UserRouter.get("/refresh", updateAccessToken);
+
+UserRouter.get("/me",isAuthenticated, getUserInfo);
 
 export default UserRouter;
