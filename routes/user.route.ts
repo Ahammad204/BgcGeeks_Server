@@ -7,6 +7,7 @@ import {
   registrationUser,
   socialAuth,
   updateAccessToken,
+  updatePassword,
   updateUserInfo,
 } from "../controllers/user.controller";
 import { isAuthenticated } from "../middleware/auth";
@@ -27,5 +28,7 @@ UserRouter.get("/me", isAuthenticated, getUserInfo);
 UserRouter.post("/social-auth", socialAuth);
 
 UserRouter.put("/update-user-info", isAuthenticated, updateUserInfo);
+
+UserRouter.put("/update-user-password", isAuthenticated, updatePassword);
 
 export default UserRouter;
