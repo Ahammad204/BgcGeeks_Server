@@ -1,6 +1,7 @@
 import express from "express";
 import {
   editCourse,
+  getAllCourses,
   getSingleCourse,
   uploadCourse,
 } from "../controllers/course.controller";
@@ -22,5 +23,7 @@ courseRouter.put(
 );
 
 courseRouter.get("/get-course/:id", getSingleCourse);
+
+courseRouter.get("/get-courses", getAllCourses);
 
 export default courseRouter;
