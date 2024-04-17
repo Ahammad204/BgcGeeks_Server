@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .order-details {
+            margin-top: 20px;
+        }
+
+        .order-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .order-details th,
+        .order-details td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-details th {
+            background-color: #f2f2f2;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Order Confirmation</h1>
+        <div class="order-details">
+            <p>Dear Customer,</p>
+            <p>Thank you for your order! Here are the details:</p>
+            <table>
+                <tr>
+                    <th>Order ID</th>
+                    <td><%= order._id %></td>
+                </tr>
+                <tr>
+                    <th>Course Name</th>
+                    <td><%= order.name %></td>
+                </tr>
+                <tr>
+                    <th>Price</th>
+                    <td>$<%= order.price %></td>
+                </tr>
+                <tr>
+                    <th>Date</th>
+                    <td><%= order.date %></td>
+                </tr>
+            </table>
+        </div>
+        <p class="footer">Thank you for choosing our service. If you have any questions, please contact us.</p>
+    </div>
+</body>
+
+</html>
