@@ -116,13 +116,18 @@ export const editLayout = CatchAsyncError(
             };
           })
         );
-        await LayoutModel.findByIdAndUpdate(faqItem?._id,{ type: "FAQ", faq: faqItems });
+        await LayoutModel.findByIdAndUpdate(faqItem?._id, {
+          type: "FAQ",
+          faq: faqItems,
+        });
       }
 
       //Categories Section Update
       if (type === "Categories") {
         const { categories } = req.body;
-        const categoriesData = await LayoutModel.findOne({ type: "Categories" });
+        const categoriesData = await LayoutModel.findOne({
+          type: "Categories",
+        });
         const categoriesItem = await Promise.all(
           categories.map(async (item: any) => {
             return {
@@ -130,7 +135,7 @@ export const editLayout = CatchAsyncError(
             };
           })
         );
-        await LayoutModel.findByIdAndUpdate(categoriesData?._id,{
+        await LayoutModel.findByIdAndUpdate(categoriesData?._id, {
           type: "Categories",
           categories: categoriesItem,
         });
@@ -139,6 +144,22 @@ export const editLayout = CatchAsyncError(
       res.status(200).json({
         success: true,
         message: "Layout Updated Successfully",
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+//Get Layout By Type --- Only for admin
+export const getLayoutByType = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { type } = req.body;
+      const layout = await LayoutModel.findOne({ type });
+      res.status(201).json({
+        success: true,
+        layout,
       });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
