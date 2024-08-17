@@ -46,12 +46,14 @@ UserRouter.get(
 
 UserRouter.put(
   "/update-user",
+  updateAccessToken,
   isAuthenticated,
   authorizeRoles("admin"),
   updateUserRole
 );
 UserRouter.delete(
   "/delete-user/:id",
+  updateAccessToken,
   isAuthenticated,
   authorizeRoles("admin"),
   deleteUser

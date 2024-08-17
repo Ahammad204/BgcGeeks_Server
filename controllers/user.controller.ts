@@ -245,10 +245,11 @@ export const updateAccessToken = CatchAsyncError(
 
       await redis.set(user._id, JSON.stringify(user), "EX", 604800); //604800 means 7 Days
 
-      res.status(200).json({
-        status: "Success",
-        accessToken,
-      });
+      // res.status(200).json({
+      //   status: "Success",
+      //   accessToken,
+      // });
+      next();
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
