@@ -4,6 +4,8 @@ export interface IOrder extends Document {
   courseId: string;
   userId: string;
   payment_info: object;
+  description: string;
+  shipping:object;
 }
 
 const orderSchema = new Schema<IOrder>(
@@ -17,6 +19,14 @@ const orderSchema = new Schema<IOrder>(
       required: true,
     },
     payment_info: {
+      type: Object,
+      // required:true
+    },
+    description: { // Add description field to schema
+      type: String,
+     
+    },
+    shipping: {
       type: Object,
       // required:true
     },
