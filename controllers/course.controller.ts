@@ -43,7 +43,7 @@ export const editCourse = CatchAsyncError(
       const data = req.body;
       const thumbnail = data.thumbnail;
       const courseId = req.params.id;
-      const courseData = await CourseModel.findById(courseId) as any;
+      const courseData = (await CourseModel.findById(courseId)) as any;
       if (thumbnail && !thumbnail.startsWith("https")) {
         await cloudinary.v2.uploader.destroy(courseData.thumbnail.public_id);
 
@@ -57,11 +57,11 @@ export const editCourse = CatchAsyncError(
         };
       }
 
-      if(thumbnail.startsWith("https")){
+      if (thumbnail.startsWith("https")) {
         data.thumbnail = {
           public_id: courseData?.thumbnail.public_id,
-          url: courseData?.thumbnail.url
-        }
+          url: courseData?.thumbnail.url,
+        };
       }
 
       // const courseId = req.params.id;
@@ -127,16 +127,16 @@ export const getAllCourses = CatchAsyncError(
       //     courses,
       //   });
       // } else {
-        const courses = await CourseModel.find().select(
-          "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
-        );
+      const courses = await CourseModel.find().select(
+        "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+      );
 
-        await redis.set("allCourses", JSON.stringify(courses));
+      await redis.set("allCourses", JSON.stringify(courses));
 
-        res.status(200).json({
-          success: true,
-          courses,
-        });
+      res.status(200).json({
+        success: true,
+        courses,
+      });
       // }
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
@@ -269,6 +269,8 @@ export const addAnswer = CatchAsyncError(
       const newAnswer: any = {
         user: req.user,
         answer,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       //Add this answer to our course Content
@@ -364,12 +366,19 @@ export const addReview = CatchAsyncError(
 
       await course?.save();
 
-      const notification = {
-        title: "New Review Received",
-        message: `${req.user?.name} has given a review in ${course?.name}`,
-      };
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7days
+
+      // const notification = {
+      //   title: "New Review Received",
+      //   message: `${req.user?.name} has given a review in ${course?.name}`,
+      // };
 
       // Create A notification
+      await NotificationModel.create({
+        user: req.user?._id,
+        title: "New Review Received",
+        message: `${req.user?.name} has given a review in ${course?.name}`,
+      });
 
       res.status(200).json({
         success: true,
@@ -411,6 +420,8 @@ export const addReplyToReview = CatchAsyncError(
       const replyData: any = {
         user: req.user,
         comment,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       if (!review.commentReplies) {
@@ -420,6 +431,8 @@ export const addReplyToReview = CatchAsyncError(
       review.commentReplies?.push(replyData);
 
       await course?.save();
+
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7days
 
       res.status(200).json({
         success: true,
@@ -474,7 +487,6 @@ export const generateVideoUrl = CatchAsyncError(
         `https://dev.vdocipher.com/api/videos/${videoId}/otp`,
         { ttl: 300 },
         {
-
           headers: {
             Accept: "application/json",
             "Content-type": "application/json",
