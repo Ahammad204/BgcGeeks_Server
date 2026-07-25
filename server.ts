@@ -20,10 +20,19 @@ initSocketServer(server);
 
 
 // Connect to DB first, then start server
-connectDB().then(() => {
-    server.listen(process.env.PORT, () => {
-        console.log(`Server is connected with port ${process.env.PORT}`);
-    });
-});
+const startServer = () => {
+    connectDB()
+        .then(() => {
+            server.listen(process.env.PORT, () => {
+                console.log(`Server is connected with port ${process.env.PORT}`);
+            });
+        })
+        .catch((err) => {
+            console.log("Failed to connect to DB. Retrying in 5 seconds...");
+            setTimeout(startServer, 5000);
+        });
+};
+
+startServer();
 
 

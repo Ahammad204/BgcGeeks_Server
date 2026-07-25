@@ -11,15 +11,14 @@ const connectDB = async () => {
         });
         console.log(`Database Connected With ${mongoose.connection.host}`);
     } catch (error: any) {
-        console.log(error.message);
-        setTimeout(connectDB, 5000);
+        console.log("MongoDB connection failed:", error.message);
+        throw error;
     }
 };
 
-// Handle connection events for Render free tier (sleep/wake)
 mongoose.connection.on("disconnected", () => {
     console.log("MongoDB disconnected. Attempting to reconnect...");
-    connectDB();
+    connectDB().catch((err) => console.log("Reconnect failed:", err.message));
 });
 
 mongoose.connection.on("error", (err) => {
