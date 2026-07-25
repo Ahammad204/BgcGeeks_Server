@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from "express";
 export const app = express();
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
 import { ErrorMiddleware } from "./middleware/error";
 import UserRouter from "./routes/user.route";
 import courseRouter from "./routes/course.route";
@@ -26,6 +27,19 @@ app.use(
     credentials: true,
   })
 );
+
+//Connection guard - ensure MongoDB is alive before processing requests
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+    if (mongoose.connection.readyState !== 1) {
+        try {
+            await mongoose.connect(process.env.DB_URL || '');
+            console.log("MongoDB reconnected successfully");
+        } catch (err) {
+            console.log("MongoDB reconnection failed:", err);
+        }
+    }
+    next();
+});
 
 //API Request limit
 const limiter = rateLimit({
