@@ -88,26 +88,31 @@ export const getSingleCourse = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const courseId = req.params.id;
-      const isCacheExist = await redis.get(courseId);
 
-      if (isCacheExist) {
-        const course = JSON.parse(isCacheExist);
-        res.status(200).json({
-          success: true,
-          course,
-        });
-      } else {
-        const course = await CourseModel.findById(req.params.id).select(
-          "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
-        );
-
-        await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7 days
-
-        res.status(200).json({
-          success: true,
-          course,
-        });
+      if (redis) {
+        const isCacheExist = await redis.get(courseId);
+        if (isCacheExist) {
+          const course = JSON.parse(isCacheExist);
+          res.status(200).json({
+            success: true,
+            course,
+          });
+          return;
+        }
       }
+
+      const course = await CourseModel.findById(req.params.id).select(
+        "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+      );
+
+      if (redis) {
+        await redis.set(courseId, JSON.stringify(course), "EX", 604800);
+      }
+
+      res.status(200).json({
+        success: true,
+        course,
+      });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
@@ -131,7 +136,9 @@ export const getAllCourses = CatchAsyncError(
         "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
       );
 
-      await redis.set("allCourses", JSON.stringify(courses));
+      if (redis) {
+        await redis.set("allCourses", JSON.stringify(courses));
+      }
 
       res.status(200).json({
         success: true,
@@ -366,7 +373,9 @@ export const addReview = CatchAsyncError(
 
       await course?.save();
 
-      await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7days
+      if (redis) {
+        await redis.set(courseId, JSON.stringify(course), "EX", 604800);
+      }
 
       // const notification = {
       //   title: "New Review Received",
@@ -432,7 +441,9 @@ export const addReplyToReview = CatchAsyncError(
 
       await course?.save();
 
-      await redis.set(courseId, JSON.stringify(course), "EX", 604800); //7days
+      if (redis) {
+        await redis.set(courseId, JSON.stringify(course), "EX", 604800);
+      }
 
       res.status(200).json({
         success: true,
@@ -466,7 +477,9 @@ export const deleteCourse = CatchAsyncError(
       }
 
       await course.deleteOne({ id });
-      await redis.del(id);
+      if (redis) {
+        await redis.del(id);
+      }
 
       res.status(200).json({
         success: true,

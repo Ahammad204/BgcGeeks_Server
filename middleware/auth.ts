@@ -24,15 +24,25 @@ export const isAuthenticated = CatchAsyncError(
       return next(new ErrorHandler("Access token is not valid", 400));
     }
 
-    const user = await redis.get(decoded.id);
+    if (redis) {
+      const user = await redis.get(decoded.id);
 
-    if (!user) {
-      return next(
-        new ErrorHandler("Please Login to access this resource", 400)
-      );
+      if (!user) {
+        return next(
+          new ErrorHandler("Please Login to access this resource", 400)
+        );
+      }
+
+      req.user = JSON.parse(user);
+    } else {
+      const user = await (await import("../models/user.model")).default.findById(decoded.id);
+      if (!user) {
+        return next(
+          new ErrorHandler("Please Login to access this resource", 400)
+        );
+      }
+      req.user = user as any;
     }
-
-    req.user = JSON.parse(user);
 
     next();
   }

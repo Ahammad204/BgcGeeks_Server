@@ -184,7 +184,9 @@ export const logoutUser = CatchAsyncError(
       res.cookie("refresh_token", "", { maxAge: 1 });
 
       const userId = req.user?._id || "";
-      redis.del(userId);
+      if (redis) {
+        redis.del(userId);
+      }
 
       res.status(200).json({
         success: true,
@@ -212,44 +214,73 @@ export const updateAccessToken = CatchAsyncError(
         return next(new ErrorHandler(message, 400));
       }
 
-      const session = await redis.get(decoded.id as string);
+      if (redis) {
+        const session = await redis.get(decoded.id as string);
 
-      if (!session) {
-        return next(
-          new ErrorHandler("Please Login to access this resources", 400)
+        if (!session) {
+          return next(
+            new ErrorHandler("Please Login to access this resources", 400)
+          );
+        }
+
+        const user = JSON.parse(session);
+
+        const accessToken = jwt.sign(
+          { id: user._id },
+          process.env.ACCESS_TOKEN as string,
+          {
+            expiresIn: "5m",
+          }
         );
+
+        const refreshToken = jwt.sign(
+          { id: user._id },
+          process.env.REFRESH_TOKEN as string,
+          {
+            expiresIn: "3d",
+          }
+        );
+
+        req.user = user;
+
+        res.cookie("access_token", accessToken, accessTokenOptions);
+        res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+        await redis.set(user._id, JSON.stringify(user), "EX", 604800);
+
+        next();
+      } else {
+        const user = await userModel.findById(decoded.id as string);
+
+        if (!user) {
+          return next(
+            new ErrorHandler("Please Login to access this resources", 400)
+          );
+        }
+
+        const accessToken = jwt.sign(
+          { id: user._id },
+          process.env.ACCESS_TOKEN as string,
+          {
+            expiresIn: "5m",
+          }
+        );
+
+        const refreshToken = jwt.sign(
+          { id: user._id },
+          process.env.REFRESH_TOKEN as string,
+          {
+            expiresIn: "3d",
+          }
+        );
+
+        req.user = user as any;
+
+        res.cookie("access_token", accessToken, accessTokenOptions);
+        res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+        next();
       }
-
-      const user = JSON.parse(session);
-
-      const accessToken = jwt.sign(
-        { id: user._id },
-        process.env.ACCESS_TOKEN as string,
-        {
-          expiresIn: "5m",
-        }
-      );
-
-      const refreshToken = jwt.sign(
-        { id: user._id },
-        process.env.REFRESH_TOKEN as string,
-        {
-          expiresIn: "3d",
-        }
-      );
-
-      req.user = user;
-
-      res.cookie("access_token", accessToken, accessTokenOptions);
-      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
-
-      await redis.set(user._id, JSON.stringify(user), "EX", 604800); //604800 means 7 Days
-
-      // res.status(200).json({
-      //   status: "Success",
-      //   accessToken,
-      // });
-      next();
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
@@ -322,7 +353,9 @@ export const updateUserInfo = CatchAsyncError(
 
       await user?.save();
 
-      await redis.set(userId, JSON.stringify(user));
+      if (redis) {
+        await redis.set(userId, JSON.stringify(user));
+      }
 
       res.status(201).json({
         success: true,
@@ -366,7 +399,9 @@ export const updatePassword = CatchAsyncError(
 
       await user.save();
 
-      await redis.set(req.user?._id, JSON.stringify(user));
+      if (redis) {
+        await redis.set(req.user?._id, JSON.stringify(user));
+      }
 
       res.status(201).json({
         success: true,
@@ -421,7 +456,9 @@ export const updateProfilePicture = CatchAsyncError(
 
       await user?.save();
 
-      await redis.set(userId, JSON.stringify(user));
+      if (redis) {
+        await redis.set(userId, JSON.stringify(user));
+      }
 
       res.status(200).json({
         success: true,
@@ -468,7 +505,9 @@ export const deleteUser = CatchAsyncError(
       }
 
       await user.deleteOne({ id });
-      await redis.del(id);
+      if (redis) {
+        await redis.del(id);
+      }
 
       res.status(200).json({
         success: true,

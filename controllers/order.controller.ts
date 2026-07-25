@@ -88,7 +88,9 @@ export const createOrder = CatchAsyncError(
 
       user?.courses.push(course?._id);
 
-      await redis.set(req.user?._id, JSON.stringify(user));
+      if (redis) {
+        await redis.set(req.user?._id, JSON.stringify(user));
+      }
 
       await user?.save();
 
