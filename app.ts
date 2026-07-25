@@ -30,9 +30,13 @@ app.use(
 
 //Connection guard - ensure MongoDB is alive before processing requests
 app.use(async (req: Request, res: Response, next: NextFunction) => {
-    if (mongoose.connection.readyState !== 1) {
+    const state = mongoose.connection.readyState;
+    // 0=disconnected, 2=connecting, 3=disconnecting
+    if (state !== 1) {
         try {
-            await mongoose.connect(process.env.DB_URL || '');
+            await mongoose.connect(process.env.DB_URL || '', {
+                serverSelectionTimeoutMS: 5000,
+            });
             console.log("MongoDB reconnected successfully");
         } catch (err) {
             console.log("MongoDB reconnection failed:", err);

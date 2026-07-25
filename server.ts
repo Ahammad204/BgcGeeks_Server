@@ -19,10 +19,11 @@ cloudinary.config({
 initSocketServer(server);
 
 
-// Create Server
-server.listen(process.env.PORT, () => {
-    console.log(`Server is connected with port ${process.env.PORT}`);
-    connectDB();
+// Connect to DB first, then start server
+connectDB().then(() => {
+    server.listen(process.env.PORT, () => {
+        console.log(`Server is connected with port ${process.env.PORT}`);
+    });
 });
 
 

@@ -5,7 +5,10 @@ const dbUrl: string = process.env.DB_URL || '';
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(dbUrl);
+        await mongoose.connect(dbUrl, {
+            serverSelectionTimeoutMS: 5000,
+            heartbeatFrequencyMS: 10000,
+        });
         console.log(`Database Connected With ${mongoose.connection.host}`);
     } catch (error: any) {
         console.log(error.message);
